@@ -1,0 +1,64 @@
+import enum
+from sqlalchemy import create_engine,Column,String,Integer,Boolean,Float,ForeignKey,Enum
+from sqlalchemy.orm import declarative_base
+
+#cria a conexão
+db = create_engine("sqlite:///database/banco.db")
+
+#cria a base do db
+Base = declarative_base()
+
+class Status(enum.Enum):
+    PENDENTE=1
+    CANCELADO=2
+    FINALIZADO=3
+
+#criar tabelas do banco
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column("id",Integer,primary_key=True,autoincrement=True)
+    nome = Column("nome",String)
+    senha = Column("senha",String)
+    email = Column("email",String,nullable=False)
+    ativo = Column("ativo",Boolean)
+    admin = Column("admin",Boolean,default=False)
+
+    def __init__(self,nome,email,senha,ativo=True,admin=False):
+        self.nome = nome
+        self.email = email
+        self.senha = senha
+        self.ativo = ativo
+        self.admin = admin
+
+#pedido
+class Order(Base):
+    __tablename__ = "orders"
+
+    id = Column("id",Integer,primary_key=True,autoincrement=True)
+    status = Column("status", Enum(Status)) #pendente, cancelado,finalizado
+    userId = Column("userId",ForeignKey("users.id"))
+    preco = Column("preco",Float)
+
+    def __init__(self,userId,status=Status.PENDENTE,preco=0):
+        self.userId = userId
+        self.status = status
+        self.preco = preco
+
+#itensPedido
+class ItemsOrder(Base):
+    __tablename__ = "items_orders"
+
+    id = Column("id",Integer,primary_key=True,autoincrement=True)
+    quantidade = Column("quantidade",Integer)
+    sabor = Column("sabor",String)
+    tamanho = Column("tamanho",String)
+    preco_unitario = Column("preco_unitario",String)
+    orderId = Column("orderId",ForeignKey("orders.id"))
+
+    def __init__(self,orderId,quantidade,sabor,tamanho,preco_unitario):
+        self.orderId = orderId
+        self.quantidade = quantidade
+        self.sabor = sabor
+        self.tamanho = tamanho
+        self.preco_unitario = preco_unitario
