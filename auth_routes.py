@@ -3,7 +3,7 @@ from os import access
 from fastapi import APIRouter,Depends,HTTPException
 from sqlalchemy.orm import Session
 from models import User
-from dependencies import pegar_session
+from dependencies import pegar_session, verify_token
 from main import SECRET_KEY, bcrypt_context,ALGORITHM,ACCESS_TOKEN_EXPIRE_MIN
 from schemas import LoginSchema, UserSchema
 from jose import jwt,JWTError
@@ -13,17 +13,10 @@ auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 def create_token(userId,duracao_token=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MIN)):
     date_exp = datetime.now(timezone.utc)+duracao_token
-    dic_info = {"sub":userId,"exp":date_exp}
+    dic_info = {"sub":str(userId),"exp":date_exp}
     encoded_jwt = jwt.encode(dic_info,SECRET_KEY,ALGORITHM)
     
     return encoded_jwt
-
-def verify_token(token,session: Session = Depends(pegar_session)):
-    # verificar se token é valido
-    # extrair o ID do usuario do token
-    user = session.query(User).filter(User.id == 1).first()
-
-    return user
 
 def auth_user(email,senha,session):
     user = session.query(User).filter(User.email==email).first()
@@ -68,9 +61,9 @@ async def login(login_schema: LoginSchema, session: Session = Depends(pegar_sess
                "token_type": "Bearer"}
 
 @auth_router.get("/refresh")
-async def use_refresh_token(token):
+async def use_refresh_token(user: User = Depends(verify_token)):
+    # user = verify_token(token)
     # verificar o token
-    user = verify_token(token)
     access_token = create_token(user.id)
     return{"access_token": access_token,
            "token_type": "Bearer"}
