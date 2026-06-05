@@ -8,10 +8,10 @@ db = create_engine("sqlite:///database/banco.db")
 #cria a base do db
 Base = declarative_base()
 
-class Status(enum.Enum):
-    PENDENTE=1
-    CANCELADO=2
-    FINALIZADO=3
+class OrderStatus(enum.Enum):
+    PENDENTE= "PENDENTE"
+    CANCELADO= "CANCELADO"
+    FINALIZADO= "FINALIZADO"
 
 #criar tabelas do banco
 class User(Base):
@@ -36,11 +36,11 @@ class Order(Base):
     __tablename__ = "orders"
 
     id = Column("id",Integer,primary_key=True,autoincrement=True)
-    status = Column("status", Enum(Status)) #pendente, cancelado,finalizado
+    status = Column("status", Enum(OrderStatus)) #pendente, cancelado,finalizado
     userId = Column("userId",ForeignKey("users.id"))
     preco = Column("preco",Float)
 
-    def __init__(self,userId,status=Status.PENDENTE,preco=0):
+    def __init__(self,userId,status=OrderStatus.PENDENTE,preco=0):
         self.userId = userId
         self.status = status
         self.preco = preco

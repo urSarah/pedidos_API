@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from dependencies import pegar_session
-from models import Order
+from dependencies import pegar_session, verify_token
+from models import Order, OrderStatus
 from schemas import OrderSchema
-order_router = APIRouter(prefix="/order", tags=["order"])
+order_router = APIRouter(prefix="/order", tags=["order"], dependencies=[Depends(verify_token)])
 
 #edpoint:
 #/ordens
@@ -17,3 +17,18 @@ async def create(order_schema:OrderSchema,session: Session = Depends(pegar_sessi
     session.add(new_order)
     session.commit()
     return {"mensagem": f"Pedido {new_order.id} criado com sucesso"}
+
+@order_router.post("/cancel/{orderId}")
+async def cancel_order(orderId: int, session: Session = Depends(pegar_session)):
+    order = session.query(Order).filter(Order.id == orderId).first()
+
+    if not order:
+        raise HTTPException(status_code=401,detail="Pedido não encontrado")
+    
+    order.status = OrderStatus.CANCELADO
+    session.commit()
+
+    return {
+        "Mensagem": f"Pedido numero: {orderId} cancelado",
+        "Order": order
+    }
