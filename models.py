@@ -45,6 +45,12 @@ class Order(Base):
         self.status = status
         self.preco = preco
 
+    def calcular_preco(self):
+        # pecorrer todos os items do pedido
+        # somar todos os preços de todos os items dos pedidos
+        # editar no campo "preco" o valor final do preco do pedido
+        self.preco = 10
+
 #itensPedido
 class ItemsOrder(Base):
     __tablename__ = "items_orders"
