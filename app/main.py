@@ -13,8 +13,8 @@ app = FastAPI()
 bcrypt_context = CryptContext(schemes=["bcrypt"])
 oauth2_schema = OAuth2PasswordBearer(tokenUrl="auth/login_form")
 
-from auth_routes import auth_router
-from order_routes import order_router
+from app.routers.auth import auth_router
+from app.routers.order import order_router
 router = [auth_router,order_router]
 
 for routes in router:
