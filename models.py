@@ -1,6 +1,6 @@
 import enum
 from sqlalchemy import create_engine,Column,String,Integer,Boolean,Float,ForeignKey,Enum
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, relationship
 
 #cria a conexão
 db = create_engine("sqlite:///database/banco.db")
@@ -39,6 +39,7 @@ class Order(Base):
     status = Column("status", Enum(OrderStatus)) #pendente, cancelado,finalizado
     userId = Column("userId",ForeignKey("users.id"))
     preco = Column("preco",Float)
+    items = relationship("ItemsOrder", cascade="all, delete")
 
     def __init__(self,userId,status=OrderStatus.PENDENTE,preco=0):
         self.userId = userId
@@ -47,9 +48,13 @@ class Order(Base):
 
     def calcular_preco(self):
         # pecorrer todos os items do pedido
+        preco_pedido = 0
+        for item in self.items:
+            preco_item = item.preco_unitario * item.quantidade
+            preco_pedido += preco_item
         # somar todos os preços de todos os items dos pedidos
         # editar no campo "preco" o valor final do preco do pedido
-        self.preco = 10
+        self.preco = preco_pedido
 
 #itensPedido
 class ItemsOrder(Base):
@@ -59,7 +64,7 @@ class ItemsOrder(Base):
     quantidade = Column("quantidade",Integer)
     sabor = Column("sabor",String)
     tamanho = Column("tamanho",String)
-    preco_unitario = Column("preco_unitario",String)
+    preco_unitario = Column("preco_unitario",Float)
     orderId = Column("orderId",ForeignKey("orders.id"))
 
     def __init__(self,orderId,quantidade,sabor,tamanho,preco_unitario):

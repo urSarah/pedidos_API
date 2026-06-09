@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from dependencies import pegar_session, verify_token
 from models import ItemsOrder, Order, OrderStatus, User
-from schemas import ItemOrderSchema, OrderSchema
+from schemas import ItemOrderSchema
 order_router = APIRouter(prefix="/order", tags=["order"], dependencies=[Depends(verify_token)])
 
 #edpoint:
@@ -12,11 +12,13 @@ async def order():
     return {"mensagem": "acessada"}
 
 @order_router.post("/create_order")
-async def create(order_schema:OrderSchema,session: Session = Depends(pegar_session)):
-    new_order = Order(userId=order_schema.userId)
+async def create(session: Session = Depends(pegar_session),current_user: User = Depends(verify_token)):
+    # criar pedido de acordo com o usuario que estiver logado
+    # exemplo: mau de id 1 logado, pedido com userId = 1 criado
+    new_order = Order(userId=current_user.id)
     session.add(new_order)
     session.commit()
-    return {"mensagem": f"Pedido {new_order.id} criado com sucesso"}
+    return {"mensagem": f"Pedido {new_order.id} para {current_user.nome} criado com sucesso"}
 
 @order_router.post("/cancel/{orderId}")
 async def cancel_order(orderId: int, session: Session = Depends(pegar_session), user: User = Depends(verify_token)):

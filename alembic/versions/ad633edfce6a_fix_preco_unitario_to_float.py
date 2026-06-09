@@ -1,8 +1,8 @@
-"""Initial Migration
+"""fix preco unitario to float
 
-Revision ID: 00588046e4c9
+Revision ID: ad633edfce6a
 Revises: 
-Create Date: 2026-05-31 13:04:59.979193
+Create Date: 2026-06-08 11:30:58.555361
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '00588046e4c9'
+revision: str = 'ad633edfce6a'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -32,7 +32,7 @@ def upgrade() -> None:
     )
     op.create_table('orders',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('status', sa.Enum('PENDENTE', 'CANCELADO', 'FINALIZADO', name='status'), nullable=True),
+    sa.Column('status', sa.Enum('PENDENTE', 'CANCELADO', 'FINALIZADO', name='orderstatus'), nullable=True),
     sa.Column('userId', sa.Integer(), nullable=True),
     sa.Column('preco', sa.Float(), nullable=True),
     sa.ForeignKeyConstraint(['userId'], ['users.id'], ),
@@ -43,7 +43,7 @@ def upgrade() -> None:
     sa.Column('quantidade', sa.Integer(), nullable=True),
     sa.Column('sabor', sa.String(), nullable=True),
     sa.Column('tamanho', sa.String(), nullable=True),
-    sa.Column('preco_unitario', sa.String(), nullable=True),
+    sa.Column('preco_unitario', sa.Float(), nullable=True),
     sa.Column('orderId', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['orderId'], ['orders.id'], ),
     sa.PrimaryKeyConstraint('id')

@@ -18,12 +18,6 @@ class LoginSchema(BaseModel):
     class Config:
         from_atributes = True
 
-class OrderSchema(BaseModel):
-    userId: int
-
-    class Config:
-        from_atributes = True
-
 class ItemOrderSchema(BaseModel):
     quantidade: int
     sabor: str
