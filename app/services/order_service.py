@@ -1,23 +1,16 @@
 from fastapi import HTTPException
 
-from models import (
-    Order,
-    OrderStatus,
-    ItemsOrder
-)
+from app.repository.order_repository import OrderRepository
+from models import OrderStatus
 
 
 def create(session, current_user):
-    new_order = Order(userId=current_user.id)
-
-    session.add(new_order)
-    session.commit()
-    session.refresh(new_order)
+    new_order = OrderRepository.create(session,current_user)
 
     return new_order
 
 def cancel(orderId, session, user): 
-    order = session.query(Order).filter(Order.id == orderId).first()
+    order = OrderRepository.get_by_Id(session, orderId)# AQUI
 
     if not order:
         raise HTTPException(status_code=401,detail="Pedido não encontrado")    
@@ -25,7 +18,7 @@ def cancel(orderId, session, user):
         raise HTTPException(status_code=401,detail="Voce não tem autorização para fazer essa modificação")
     
     order.status = OrderStatus.CANCELADO
-    session.commit()
+    OrderRepository.update(session)
     
     return order
 
@@ -33,32 +26,24 @@ def list(session,user):
     if not user.admin:
         raise HTTPException(status_code=401,detail="Voce não tem autorização para fazer essa operação")
     
-    order = session.query(Order).all()
+    order = OrderRepository.list_all(session)
 
     return order
 
-def add(order_id, item_order_schema,session,user):
-    order = session.query(Order).filter(Order.id == order_id).first()
+def add(orderId, item_order_schema,session,user):
+    order = OrderRepository.get_by_Id(orderId)# AQUI
 
     if not order:
         raise HTTPException(status_code=404,detail="Pedido não encontrado")
 
     if not user.admin and user.id != order.userId:
         raise HTTPException(status_code=403,detail="Você não tem autorização")
+    
 
-    order_item = ItemsOrder(
-        order_id,
-        item_order_schema.quantidade,
-        item_order_schema.sabor,
-        item_order_schema.tamanho,
-        item_order_schema.preco_unitario
-    )
-
-    session.add(order_item)
+    OrderRepository.add_item(session,orderId,item_order_schema)
 
     order.calcular_preco()
 
-    session.commit()
-    session.refresh(order_item)
+    OrderRepository.update(session)
 
-    return {"order":order,"order_item":order_item}
+    return {"order":order,"order_item":item_order_schema}
